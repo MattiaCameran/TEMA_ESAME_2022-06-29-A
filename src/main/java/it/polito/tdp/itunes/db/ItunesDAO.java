@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Artist;
 import it.polito.tdp.itunes.model.Genre;
@@ -26,7 +28,7 @@ public class ItunesDAO {
 			ResultSet res = st.executeQuery();
 
 			while (res.next()) {
-				result.add(new Album(res.getInt("AlbumId"), res.getString("Title")));
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title"), res.getInt("peso")));
 			}
 			conn.close();
 		} catch (SQLException e) {
@@ -139,4 +141,52 @@ public class ItunesDAO {
 		return result;
 	}
 	
+	public List<Album> getAlbums(int n){
+		
+		String sql = "SELECT a.AlbumId, a.Title, COUNT(DISTINCT t.trackId) AS nCanzoni "
+				+ "FROM track t, album a "
+				+ "WHERE t.AlbumId = a.AlbumId "
+				+ "GROUP BY a.albumId, a.Title "
+				+ "HAVING COUNT(DISTINCT t.trackId) > ?";
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, n);
+			ResultSet res = st.executeQuery();
+			List<Album> result = new ArrayList<Album>();
+
+			while (res.next()) {
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title"), res.getInt("nCanzoni")));
+			}
+			conn.close();
+			return result;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+	}
+	public void mapAlbums(int n, Map<Integer, Album> idMap){
+		
+		String sql = "SELECT a.AlbumId, a.Title, COUNT(DISTINCT t.trackId) AS nCanzoni "
+				+ "FROM track t, album a "
+				+ "WHERE t.AlbumId = a.AlbumId "
+				+ "GROUP BY a.albumId, a.Title "
+				+ "HAVING COUNT(DISTINCT t.trackId) > ?";
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, n);
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				idMap.put(res.getInt("AlbumId"), new Album(res.getInt("AlbumId"), res.getString("Title"), res.getInt("nCanzoni")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+	}
 }

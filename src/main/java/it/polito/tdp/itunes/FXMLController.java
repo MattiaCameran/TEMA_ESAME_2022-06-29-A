@@ -5,7 +5,10 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.itunes.model.AdiacenzaAlbum;
 import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
 import javafx.event.ActionEvent;
@@ -35,10 +38,10 @@ public class FXMLController {
     private Button btnPercorso; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA1"
-    private ComboBox<?> cmbA1; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA1; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA2"
-    private ComboBox<?> cmbA2; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA2; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -52,6 +55,17 @@ public class FXMLController {
     @FXML
     void doCalcolaAdiacenze(ActionEvent event) {
     	
+    	Album a1 = this.cmbA1.getValue();
+    	
+    	if(a1 == null) {
+    		txtResult.appendText("Selezionare un album!");
+    		return;
+    	}
+    	List<AdiacenzaAlbum> adiacenze = this.model.getAdiacenzeOrdinate(a1);
+    	
+    	for(AdiacenzaAlbum ad1: adiacenze) {
+    		txtResult.appendText(ad1.toString() + "\n");
+    	}
     }
 
     @FXML
@@ -62,6 +76,25 @@ public class FXMLController {
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	
+    	String n = txtN.getText();
+    	int nNumerico;
+    	try {
+    		nNumerico = Integer.parseInt(n);
+    	}catch(NumberFormatException e) {
+    		txtResult.appendText("Inserire un valore numerico intero");
+    		return;
+    	}
+    	
+    	if(nNumerico <= 0) {
+    		txtResult.appendText("Errore: selezionare un valore positivo");
+    		return;
+    	}
+    	
+    	txtResult.appendText(this.model.creaGrafo(nNumerico));
+    	
+    	this.cmbA1.getItems().addAll(this.model.getAlbums(nNumerico));
+    	this.cmbA2.getItems().addAll(this.model.getAlbums(nNumerico));
+    
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
